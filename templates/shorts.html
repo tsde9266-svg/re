@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Shorts | shortvideosharingapp{% endblock %}
+{% block content %}
+<h1>Your Feed</h1>
+<div class="shorts-list">
+    {% for video in videos %}
+        <div class="shorts-card">
+            <a href="{{ url_for('watch', video_id=video['id']) }}" class="shorts-thumbnail">
+                <video class="shorts-video" muted playsinline>
+                    <source src="{{ video['url'] }}" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+            </a>
+            <div class="shorts-details">
+                <h3>{{ video['title'] }}</h3>
+                <p class="shorts-meta">
+                    <span>By {{ video['publisher'] }}</span> • 
+                    <span>{{ video['genre'] or "N/A" }}</span> • 
+                    <span>Rated: {{ video['age_rating'] or "N/A" }}</span>
+                </p>
+                <div class="shorts-stats">
+                    <span>{{ video['like_count'] }} Likes</span> • 
+                    <span>{{ video['comment_count'] }} Comments</span>
+                </div>
+                <div class="shorts-actions">
+                    <form method="POST" action="{{ url_for('like') }}" class="like-form" data-video-id="{{ video['id'] }}">
+                        <button type="button" class="btn btn-secondary like-btn" data-liked="false">
+                            Like <span class="like-count">{{ video['like_count'] }}</span>
+                        </button>
+                    </form>
+                    <a href="{{ url_for('watch', video_id=video['id']) }}" class="btn btn-secondary comment-link">
+                        Comment
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <p>No shorts available yet.</p>
+    {% endfor %}
+</div>
+<script>
+document.querySelectorAll('.like-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+        const form = btn.closest('.like-form');
+        const videoId = form.dataset.videoId;
+        const liked = btn.dataset.liked === 'true';
+        const res = await fetch("{{ url_for('like') }}", {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `video_id=${videoId}&liked=${!liked}`
+        });
+        const data = await res.json();
+        if (data.success) {
+            btn.querySelector('.like-count').textContent = data.like_count;
+            btn.dataset.liked = (!liked).toString();
+        }
+    });
+});
+</script>
+{% endblock %}

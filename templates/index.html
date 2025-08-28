@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Home | shortvideosharingapp{% endblock %}
+{% block content %}
+{% if 'user' not in session %}
+    <section class="hero">
+        <h1>Join shortvideosharingapp Today</h1>
+        <p>Discover and share short-form videos with a vibrant community of creators.</p>
+        <div class="hero-cta">
+            <a href="{{ url_for('register') }}" class="btn btn-primary">Get Started</a>
+            <a href="{{ url_for('login') }}" class="btn btn-secondary">Login</a>
+        </div>
+    </section>
+{% else %}
+    <h2>Welcome back, {{ session['user']['username'] }}!</h2>
+    <p>Explore the latest short-form videos by creators.</p>
+{% endif %}
+<section class="featured-videos">
+    <h2>Featured Shorts</h2>
+    <div class="video-grid">
+        {% for video in videos %}
+            <div class="video-card">
+                <a href="{{ url_for('watch', video_id=video['id']) }}">
+                    <video width="100%" muted playsinline>
+                        <source src="{{ video['url'] }}" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                </a>
+                <h3>{{ video['title'] }}</h3>
+                <p>By {{ video['publisher'] }}</p>
+            </div>
+        {% else %}
+            <p>No featured videos available yet.</p>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

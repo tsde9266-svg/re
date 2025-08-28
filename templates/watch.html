@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Watch | shortvideosharingapp{% endblock %}
+{% block content %}
+<div class="watch-wrapper">
+    <div class="video-section">
+        <h2>{{ video['title'] }}</h2>
+        <div class="video-container">
+            <video controls>
+                <source src="{{ video['url'] }}" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        </div>
+        <div class="video-details">
+            <p><strong>Publisher:</strong> {{ video['publisher'] }}</p>
+            <p><strong>Genre:</strong> {{ video['genre'] or 'N/A' }}</p>
+            <p><strong>Age Rating:</strong> {{ video['age_rating'] or 'N/A' }}</p>
+        </div>
+    </div>
+    <div class="comments-section">
+        <h3>Comments</h3>
+        <div id="comments" class="comments-list">
+            {% for comment in comments %}
+                <div class="comment">
+                    <strong>{{ comment['username'] }}</strong> ({{ comment['rating'] }}/5):
+                    <p>{{ comment['comment'] }}</p>
+                    <small>{{ comment['created_at'] }}</small>
+                </div>
+            {% else %}
+                <p>No comments yet. Be the first!</p>
+            {% endfor %}
+        </div>
+        {% if session.get('user') %}
+            <form onsubmit="postComment(event)" method="POST">
+                <input type="hidden" name="video_id" value="{{ video['id'] }}">
+                <label>Your Comment:</label>
+                <textarea name="comment" required></textarea>
+                <label>Rating:</label>
+                <select name="rating" required>
+                    <option value="">-- Select --</option>
+                    <option value="1">1 / 5</option>
+                    <option value="2">2 / 5</option>
+                    <option value="3">3 / 5</option>
+                    <option value="4">4 / 5</option>
+                    <option value="5">5 / 5</option>
+                </select>
+                <button type="submit" class="btn btn-primary">Post Comment</button>
+            </form>
+        {% else %}
+            <p><a href="{{ url_for('login') }}">Login to comment</a></p>
+        {% endif %}
+    </form>
+    </div>
+</div>
+<script>
+async function postComment(event) {
+    event.preventDefault();
+    const form = event.target;
+    const formData = new FormData(form);
+    const response = await fetch('/comment', {
+        method: 'POST',
+        body: formData
+    });
+    const data = await response.json();
+    if (data.success) {
+        const commentSection = document.getElementById("comments");
+        const commentHTML = `
+            <div class="comment">
+                <strong>${data.username}</strong> (${data.rating}/5):
+                <p>${data.comment}</p>
+                <small>${data.created_at}</small>
+            </div>
+        `;
+        commentSection.insertAdjacentHTML('afterbegin', commentHTML);
+        form.reset();
+    } else {
+        alert(data.message);
+    }
+}
+</script>
+{% endblock %}
